@@ -12,16 +12,10 @@
 
 <script>
     function logout() {
-        // 로그아웃 버튼을 클릭하면 localStorage에서 토큰을 삭제합니다.
-        localStorage.removeItem("jwtToken");
+        document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         // 로그아웃 후 메인 페이지로 리다이렉트합니다.
         window.location.href = "/main";
     }
 </script>
-
-<div id="content">
-    <!-- 페이지 내용 -->
-</div>
-
 </body>
 </html>
