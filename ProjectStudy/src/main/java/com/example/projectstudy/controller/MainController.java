@@ -105,7 +105,17 @@ public class MainController {
 
     @GetMapping("/auth")
     public String mainAuthPage() {
-        return "mainAuth"; // 이는 "mainAuth.html" 뷰를 의미합니다.
+        return "mainAuth";
     }
+
+
+    // 자유 게시판
+    @GetMapping("/freeBoard")
+    public String freeBoardPage() {
+
+        return "FreeBoard";
+    }
+
+
 
 }

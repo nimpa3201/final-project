@@ -9,13 +9,23 @@
 <p>이 페이지는 인증된 사용자만 접근할 수 있습니다.</p>
 
 <button onclick="logout()">로그아웃</button>
-
+<button onclick="goToHealthMain()">헬스정보게시판</button>
+<button onclick="goToFreeBoard()">자유 게시판</button>
 <script>
     function logout() {
         document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         // 로그아웃 후 메인 페이지로 리다이렉트합니다.
         window.location.href = "/main";
     }
+
+    function goToHealthMain() {
+        window.location.href = "/healthInform/main";
+    }
+
+    function goToFreeBoard() {
+        window.location.href = "/main/freeBoard";
+    }
+
 </script>
 </body>
 </html>

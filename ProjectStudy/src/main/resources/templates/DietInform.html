@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>다이어트 게시판</title>
+</head>
+<body>
+<h1>다이어트 게시판</h1>
+<p>환영합니다 다이어트 게시판 입니다.</p>
+
+    <button onclick="post()">글작성</button>
+    <button onclick="logout()">로그아웃</button>
+    <button onclick="main()">메인페이지</button>
+
+    <script>
+        function logout() {
+            document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            // 로그아웃 후 메인 페이지로 리다이렉트합니다.
+            window.location.href = "/main";
+        }
+
+        function main() {
+            // 메인 페이지로 이동
+            window.location.href = "/main/auth";
+        }
+
+        function post() {
+            // 글 작성 페이지로 이동
+            window.location.href = "/healthInform/diet/post";
+        }
+
+    </script>
+
+</body>
+</html>

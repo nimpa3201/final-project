@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>다이어트 게시판 글 작성</title>
+</head>
+<body>
+<h1>작성 페이지</h1>
+<p>제목, 태그, 내용은 필수 항목입니다. 태그 ex) 기타, 꿀팁</p>
+<form id="articleForm" enctype="multipart/form-data">
+    <label for="title">제목:</label>
+    <input type="text" id="title" name="title" required><br>
+
+    <label for="tags">태그:</label>
+    <input type="text" id="tags" name="tags" required><br>
+
+    <label for="content">내용:</label><br>
+    <textarea id="content" name="content" rows="5" cols="40" required></textarea><br>
+    <p>사진을 여러 개 올리고 싶으시면 한 번에 다 선택해 주세요!</p>
+    <label for="images">사진 첨부:</label>
+    <input type="file" id="images" name="images" accept="image/*" multiple><br>
+
+
+    <button type="submit">글 작성</button>
+</form>
+
+<button onclick="logout()">로그아웃</button>
+<button onclick="main()">메인페이지</button>
+<button onclick="diet()">다이어트 게시판</button>
+
+<script>
+    function logout() {
+        document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        // 로그아웃 후 메인 페이지로 리다이렉트합니다.
+        window.location.href = "/main";
+    }
+    function main() {
+        // 메인 페이지로 이동
+        window.location.href = "/main/auth";
+    }
+    function diet() {
+        // 다이어트 게시판 페이지로 이동
+        window.location.href = "/healthInform/diet";
+    }
+
+    // ...
+
+    const articleForm = document.getElementById("articleForm");
+    articleForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const title = document.getElementById("title").value;
+        const tags = document.getElementById("tags").value;
+        const content = document.getElementById("content").value;
+
+        const articleData = {
+            title: title,
+            tag: tags,
+            content: content,
+        };
+
+        const response = await fetch("/healthInform/diet/post", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(articleData),
+        });
+
+        const id = await response.text();
+
+        if (response.ok) {
+
+            // 파일 업로드를 위한 FormData 객체 생성
+            const formData = new FormData();
+            const imageInput = document.getElementById("images");
+            const selectedImages = imageInput.files;
+            for (const image of selectedImages) {
+                formData.append("images", image);
+            }
+
+            try {
+                const responseImage = await fetch("/healthInform/diet/postImages/" + id, {
+                    method: "POST",
+                    body: formData,
+                });
+
+                const imageUploadResult = await responseImage.text(); // 이미지 업로드 응답 텍스트 가져오기
+
+                if (responseImage.ok) {
+                    console.log(imageUploadResult);
+                } else {
+                    console.error("이미지 업로드 실패");
+                }
+            } catch (error) {
+                console.error("이미지 업로드 중 오류 발생", error);
+            }
+
+            console.log("글 작성 성공");
+            alert("글 작성이 성공하였습니다.");
+            window.location.href = "/healthInform/diet";
+
+        } else {
+            console.error("글 작성 실패");
+            alert("글 작성에 실패하였습니다.");
+        }
+    });
+
+</script>
+</body>
+</html>
+

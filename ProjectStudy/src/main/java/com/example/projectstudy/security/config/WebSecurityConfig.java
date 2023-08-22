@@ -25,7 +25,7 @@ public class WebSecurityConfig {
                         .requestMatchers(
                                 "/main/sign-up", "/main/login", "/main"
                                 // 회원가입         // 로그인           // 메인 페이지
-                        ).anonymous()
+                        ).permitAll()
                         .anyRequest()
                         .authenticated()
                 )

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>헬스정보 게시판</title>
+</head>
+<body>
+<h1>헬스정보 게시판</h1>
+<p>환영합니다 헬스정보 게시판 입니다.</p>
+<p>헬스정보 게시판은 (다이어트 게시판 벌크업 게시판 일반 헬스 게시판)으로 구성되어 있습니다.</p>
+
+<button onclick="logout()">로그아웃</button>
+<button onclick="main()">메인페이지</button>
+<button onclick="diet()">다이어트 게시판</button>
+
+<script>
+    function logout() {
+        document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        // 로그아웃 후 메인 페이지로 리다이렉트합니다.
+        window.location.href = "/main";
+    }
+
+    function main() {
+        // 메인 페이지로 이동
+        window.location.href = "/main/auth";
+    }
+
+    function diet() {
+        // 다이어트 게시판 이동
+        window.location.href = "/healthInform/diet";
+    }
+
+</script>
+
+</body>
+</html>
