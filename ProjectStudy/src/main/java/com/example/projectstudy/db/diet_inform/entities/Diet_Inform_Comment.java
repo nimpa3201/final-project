@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "diet_inform_comment")
+@Table(name = "DietInformComment")
 public class Diet_Inform_Comment {
 
     @Id
@@ -20,7 +20,7 @@ public class Diet_Inform_Comment {
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "diet_inform_article_id")
+    @JoinColumn(name = "DietInformArticleId")
     private Diet_Inform_Article diet_inform_article;
 
     private String content;
