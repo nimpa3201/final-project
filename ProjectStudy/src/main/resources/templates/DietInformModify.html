@@ -14,6 +14,8 @@
     <p>내용: <span th:text="${article.content}"></span></p>
 
     <div th:each="img : ${articleImgs}">
+        <button th:data-imgId="${img.id}"
+                onclick="confirmDelete(this.getAttribute('data-imgId'))">이미지 삭제</button>
         <p>Image URL: <span th:text="${img.imgUrl}"></span></p>
         <img th:src="@{${img.imgUrl}}" alt="Image">
     </div>
@@ -26,6 +28,11 @@
         <input type="text" id="tag" name="tag" th:value="${article.tag}">
         <label for="content">내용</label>
         <textarea id="content" name="content" rows="4" cols="50" th:text="${article.content}"></textarea>
+
+        <!-- 이미지 업로드 입력 필드 -->
+        <label for="images">이미지 업로드</label>
+        <input type="file" id="images" name="images" accept="image/*" multiple>
+
         <button type="button" onclick="saveArticle()">수정</button>
         <button type="button" onclick="window.history.back()">취소</button>
     </div>
@@ -40,23 +47,75 @@
             const updatedTag = document.getElementById("tag").value;
             const updatedContent = document.getElementById("content").value;
 
-            fetch(`/healthInform/diet/modify/` + [[${article.id}]], {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: updatedTitle,
-                    tag: updatedTag,
-                    content: updatedContent
+            if (confirm("정말로 수정 하시겠습니까?")) {
+                const imagesInput = document.getElementById("images");
+                const images = imagesInput.files;
+
+                fetch(`/healthInform/diet/modify/` + [[${article.id}]], {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body:JSON.stringify({
+                        title: updatedTitle,
+                        tag: updatedTag,
+                        content: updatedContent
+                    })
                 })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("게시글이 수정되었습니다.");
+                            // 이미지 업로드 요청
+                            if (images.length > 0) {
+
+                                const imagesFormData = new FormData();
+                                for (let i = 0; i < images.length; i++) {
+                                    imagesFormData.append("images", images[i]);
+                                }
+                                fetch(`/healthInform/diet/postImages/` + [[${article.id}]], {
+                                    method: 'POST',
+                                    body: imagesFormData
+                                })
+                                    .then(imageResponse => {
+                                        if (imageResponse.ok) {
+                                            alert("이미지 업로드 완료");
+                                        } else {
+                                            alert("이미지 업로드 실패");
+                                        }
+                                        window.history.back(); // 수정 완료 후 뒤로 가기
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert("이미지 업로드 오류 발생. 다시 시도해주세요.");
+                                    });
+                            } else {
+                                window.history.back(); // 이미지 없이 수정 완료 후 뒤로 가기
+                            }
+                        } else {
+                            alert("게시글 수정에 실패하였습니다.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert("게시글 수정 오류 발생. 다시 시도해주세요.");
+                    });
+            }
+        }
+        function confirmDelete(imageId) {
+            if (confirm("이미지를 삭제하시겠습니까?")) {
+                deleteImage(imageId);
+            }
+        }
+        function deleteImage(imageId) {
+            fetch(`/healthInform/diet/modify/delete/${imageId}`, {
+                method: 'DELETE'
             })
                 .then(response => {
                     if (response.ok) {
-                        alert("게시글이 수정되었습니다.");
-                        window.history.back(); // 수정 완료 후 뒤로 가기
+                        alert("이미지가 삭제되었습니다.");
+                        window.location.reload(); // 이미지 삭제 후 페이지 새로고침
                     } else {
-                        alert("게시글 수정에 실패하였습니다.");
+                        alert("이미지 삭제에 실패하였습니다.");
                     }
                 })
                 .catch(error => {

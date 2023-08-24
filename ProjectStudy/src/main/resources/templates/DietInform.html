@@ -8,6 +8,14 @@
 <h1>다이어트 게시판</h1>
 <p>환영합니다 다이어트 게시판 입니다.</p>
 
+<div class="search-buttons">
+    <label><input type="radio" name="searchOption" value="author"> 작성자로 검색</label>
+    <label><input type="radio" name="searchOption" value="tag"> 태그로 검색</label>
+    <label><input type="radio" name="searchOption" value="title"> 제목으로 검색</label>
+    <label><input type="radio" name="searchOption" value="all"> 전체 검색</label>
+    <button onclick="performSearch()">검색</button>
+</div>
+
 <!-- DietInform.html -->
 <!-- 게시물 목록 출력 -->
 <div th:each="article : ${articles}">
@@ -52,6 +60,39 @@
             // 글 작성 페이지로 이동
             window.location.href = "/healthInform/diet/post";
         }
+        function performSearch() {
+            const selectedOption = document.querySelector('input[name="searchOption"]:checked').value;
+
+            if (selectedOption === "all"){
+                const page = 0;
+                window.location.href = `/healthInform/diet?page=${page}`;
+                return;
+            }
+
+            let url;
+
+            switch (selectedOption) {
+                case "author":
+                    url = "/healthInform/diet/search/byAuthor";
+                    break;
+                case "tag":
+                    url = "/healthInform/diet/search/byTag";
+                    break;
+                case "title":
+                    url = "/healthInform/diet/search/byTitle";
+                    break;
+                default:
+                    return;
+            }
+
+            const searchTerm = prompt("검색어를 입력하세요:");
+                if (searchTerm) {
+                    const page = 0; // 이 부분에 원하는 페이지 번호를 설정하세요
+                    window.location.href = `${url}?${selectedOption}=${searchTerm}&page=${page}`;
+                }
+
+        }
+
 
     </script>
 

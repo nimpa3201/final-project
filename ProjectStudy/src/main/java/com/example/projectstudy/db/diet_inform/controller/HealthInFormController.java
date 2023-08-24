@@ -73,6 +73,59 @@ public class HealthInFormController {
 
         return "DietInform";
     }
+
+    // 다이어트 게시판 작성자로 찾기
+    @GetMapping("/diet/search/byAuthor")
+    public String dietInformByAuthor(
+            @RequestParam(name = "author") String author,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            Model model
+    ) {
+        // 페이지네이션 정보 생성
+        Pageable pageable = PageRequest.of(page, 10); // 한 페이지에 10개의 게시글 표시
+
+        // 작성자로 게시물 목록 페이지별로 가져오기
+        Page<Diet_Inform_Article> articlePage = dietInformArticleRepository.findByUser_UsernameIgnoreCaseContaining(author, pageable);
+
+        model.addAttribute("articles", articlePage);
+
+        return "DietInform";
+    }
+
+    @GetMapping("/diet/search/byTag")
+    public String dietInformByTag(
+            @RequestParam(name = "tag") String tag,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            Model model
+    ) {
+        // 페이지네이션 정보 생성
+        Pageable pageable = PageRequest.of(page, 10); // 한 페이지에 10개의 게시글 표시
+
+        // 태그로 게시물 목록 페이지별로 가져오기
+        Page<Diet_Inform_Article> articlePage = dietInformArticleRepository.findByTagIgnoreCaseContaining(tag, pageable);
+
+        model.addAttribute("articles", articlePage);
+
+        return "DietInform";
+    }
+
+    @GetMapping("/diet/search/byTitle")
+    public String dietInformByTitle(
+            @RequestParam(name = "title") String title,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            Model model
+    ) {
+        // 페이지네이션 정보 생성
+        Pageable pageable = PageRequest.of(page, 10); // 한 페이지에 10개의 게시글 표시
+
+        // 제목으로 게시물 목록 페이지별로 가져오기
+        Page<Diet_Inform_Article> articlePage = dietInformArticleRepository.findByTitleIgnoreCaseContaining(title, pageable);
+
+        model.addAttribute("articles", articlePage);
+
+        return "DietInform";
+    }
+
     // 다이어트 게시판 단일 조회
     @GetMapping("/diet/{id}")
     public String dietInformArticle(@PathVariable("id") Long id, Model model){
@@ -355,6 +408,32 @@ public class HealthInFormController {
             return ResponseEntity.ok("Article modify successfully");
         }
         return ResponseEntity.badRequest().body("bad request");
+    }
+
+    // 다이어트 게시판 수정하면서 단일 이미지 삭제
+    @DeleteMapping("/diet/modify/delete/{ImagesId}")
+    public ResponseEntity<String> ModifyDeleteImage(@PathVariable("ImagesId") Long ImagesId ){
+
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        log.info("이미지 삭제 로직 실행");
+        Optional<Diet_Inform_Article_Img> optional = dietInformArticleImgRepository.findById(ImagesId);
+        if (optional.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        Diet_Inform_Article_Img dietInformArticleImg = optional.get();
+        if (!dietInformArticleImg.getDietInformArticle().getUser().getUsername().equals(username)){
+            return ResponseEntity.badRequest().body("badRequest");
+        }
+
+        dietInformArticleImgRepository.delete(dietInformArticleImg);
+
+        // 서버에서 이미지 삭제
+
+        return ResponseEntity.ok("이미지 삭제");
     }
 
     // 다이어트 게시판 글 작성
