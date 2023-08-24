@@ -432,6 +432,17 @@ public class HealthInFormController {
         dietInformArticleImgRepository.delete(dietInformArticleImg);
 
         // 서버에서 이미지 삭제
+        Long articleId = dietInformArticleImg.getDietInformArticle().getId();
+        String[] split = dietInformArticleImg.getImgUrl().split("/");
+        String name = split[split.length-1];
+        String imagePath = "media/diet/" + articleId + "/" + name;
+
+        // 실제 서버에서 이미지 삭제
+        try {
+            Files.delete(Path.of(imagePath));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         return ResponseEntity.ok("이미지 삭제");
     }
