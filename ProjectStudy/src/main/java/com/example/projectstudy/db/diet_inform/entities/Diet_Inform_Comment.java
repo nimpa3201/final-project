@@ -20,8 +20,8 @@ public class Diet_Inform_Comment {
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "DietInformArticleId")
-    private Diet_Inform_Article diet_inform_article;
+    @JoinColumn(name = "diet_inform_article_id")
+    private Diet_Inform_Article dietInformArticle;
 
     private String content;
 

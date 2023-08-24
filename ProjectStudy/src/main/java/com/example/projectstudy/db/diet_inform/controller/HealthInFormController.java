@@ -7,9 +7,12 @@ import com.example.projectstudy.db.diet_inform.dto.Diet_Inform_Post_Dto;
 import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Article;
 import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Article_Img;
 import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Comment;
+import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Likes;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Img_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Comment_Repository;
+import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Likes_Repository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,6 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+// 자유게시판 헬스장게시판 헬스정보게시판(물품대여) 오운완챌리지  ->  api 헬스장  채팅기능  (등업제도 / 유저 업데이트)
+
+// 자유게시판 헬스장게시판(네이머api) // 헬스정보게시판(태그 형식) 채팅기능구현  + 물품대여게시판 //
+
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -44,6 +50,7 @@ public class HealthInFormController {
     private final Diet_Inform_Article_Img_Repository dietInformArticleImgRepository;
     private final Diet_Inform_Comment_Repository dietInformCommentRepository;
     private final UserRepository userRepository;
+    private final Diet_Inform_Likes_Repository dietInformLikesRepository;
 
     // 헬스 정보 공유 게시판 메인
 
@@ -79,7 +86,7 @@ public class HealthInFormController {
         List<Diet_Inform_Article_Img> dietInformArticleImgList = new ArrayList<>();
 
         for (Diet_Inform_Article_Img Img : dietInformArticleImgs ) {
-            if(Img.getDiet_inform_article().getId() == id){
+            if(Img.getDietInformArticle().getId() == id){
                 dietInformArticleImgList.add(Img);
             }
         }
@@ -88,11 +95,21 @@ public class HealthInFormController {
         List<Diet_Inform_Comment> article_comments = new ArrayList<>();
 
         for (Diet_Inform_Comment comment: diet_inform_comments) {
-            if(comment.getDiet_inform_article().getId() == id){
+            if(comment.getDietInformArticle().getId() == id){
                 article_comments.add(comment);
             }
         }
 
+        List<Diet_Inform_Likes> dietInformLikes = dietInformLikesRepository.findAll();
+        int like = 0;
+
+        for (Diet_Inform_Likes likes: dietInformLikes ) {
+            if(likes.getDietInformArticle().getId() == id){
+                like ++;
+            }
+        }
+
+        model.addAttribute("like", like);
         model.addAttribute("article", dietInformArticle.get());
         model.addAttribute("articleImgs", dietInformArticleImgList);
         model.addAttribute("articleComments", article_comments);
@@ -103,6 +120,55 @@ public class HealthInFormController {
 
 
     // 좋아요 로직 (좋아요는 한번 더 누르면 취소)
+    @Transactional
+    @PostMapping("/diet/like/{articleId}")
+    public ResponseEntity<String> postLike(@PathVariable("articleId") Long articleId){
+
+        log.info("좋아요 로직 실행");
+
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        // 좋아요 하려고 하는 피드가 있는지 확인
+        Optional<Diet_Inform_Article> diet_inform_article = dietInformArticleRepository.findById(articleId);
+
+        if(diet_inform_article.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        Diet_Inform_Article dietInformArticle = diet_inform_article.get();
+
+        // 좋아요 하려고 하는 피드가 자신이 작성한 피드인지 확인
+        if(dietInformArticle.getUser().getUsername().equals(username)){
+            return ResponseEntity.badRequest().body("자신이 작성한 피드에는 좋아요는 못 누른다");
+        }
+
+        Optional<UserEntity> userEntity = userRepository.findByUsername(username);
+        UserEntity user = userEntity.get();
+        Long userId = user.getId();
+
+        Optional<Diet_Inform_Likes> likesOptional = dietInformLikesRepository.findByUserIdAndDietInformArticleId(userId, articleId);
+        // 해당 피드에 현재 사용자가 좋아요를 누른적이 없다면 좋아요
+
+        if(likesOptional.isEmpty()){
+            Diet_Inform_Likes dietInformLikes = new Diet_Inform_Likes();
+            dietInformLikes.setDietInformArticle(dietInformArticle);
+            dietInformLikes.setUser(user);
+            dietInformLikesRepository.save(dietInformLikes);
+            log.info("좋아요");
+            return ResponseEntity.ok("좋아요!");
+        }
+        // 이미 눌렀으면 삭제
+        else{
+            dietInformLikesRepository.deleteByDietInformArticleIdAndUserId(articleId, userId);
+            log.info("좋아요 삭제");
+            return ResponseEntity.ok("좋아요 삭제!");
+        }
+
+    }
+
 
 
     // 댓글 로직
@@ -132,7 +198,7 @@ public class HealthInFormController {
 
         // 댓글 작성 로직 (requestDto의 comment 사용)
         Diet_Inform_Comment diet_inform_comment = new Diet_Inform_Comment();
-        diet_inform_comment.setDiet_inform_article(diet_inform_article); // 게시글
+        diet_inform_comment.setDietInformArticle(diet_inform_article); // 게시글
         diet_inform_comment.setUser(user.get()); // 작성자
         diet_inform_comment.setContent(requestDto.getComment()); // 댓글내용
 
@@ -189,22 +255,26 @@ public class HealthInFormController {
 
         //  댓글 삭제
         List<Diet_Inform_Comment> commentList = dietInformCommentRepository.findAll();
-
-        List<Diet_Inform_Comment> articleComments = new ArrayList<>();
         for (Diet_Inform_Comment comment: commentList) {
-            if (comment.getDiet_inform_article().getId() == articleId){
+            if (comment.getDietInformArticle().getId() == articleId){
                dietInformCommentRepository.delete(comment);
             }
         }
 
         // 좋아요 삭제
+        List<Diet_Inform_Likes> dietInformLikes = dietInformLikesRepository.findAll();
 
+        for (Diet_Inform_Likes likes: dietInformLikes ) {
+            if(likes.getDietInformArticle().getId() == articleId){
+                dietInformLikesRepository.delete(likes);
+            }
+        }
         // 이미지 삭제
         List<Diet_Inform_Article_Img> ImgList = dietInformArticleImgRepository.findAll();
 
         List<Diet_Inform_Article_Img> articleImg = new ArrayList<>();
         for (Diet_Inform_Article_Img Img: ImgList) {
-            if(Img.getDiet_inform_article().getId() == articleId){
+            if(Img.getDietInformArticle().getId() == articleId){
                 articleImg.add(Img);
             }
         }
@@ -236,10 +306,25 @@ public class HealthInFormController {
     @GetMapping("/diet/modify/{articleId}")
     public String dietInformModifyPage(@PathVariable("articleId") Long articleId, Model model){
 
+        Optional<Diet_Inform_Article> dietInformArticle = dietInformArticleRepository.findById(articleId);
+        if (dietInformArticle.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        // 이미지
+        List<Diet_Inform_Article_Img> dietInformArticleImgs = dietInformArticleImgRepository.findAll();
+        List<Diet_Inform_Article_Img> dietInformArticleImgList = new ArrayList<>();
+
+        for (Diet_Inform_Article_Img Img : dietInformArticleImgs ) {
+            if(Img.getDietInformArticle().getId() == articleId){
+                dietInformArticleImgList.add(Img);
+            }
+        }
+        model.addAttribute("article", dietInformArticle.get());
+        model.addAttribute("articleImgs", dietInformArticleImgList);
+        model.addAttribute("isEditMode", false);
+
         return "DietInformModify";
     }
-
-
 
     // 다이어트 게시판 글 수정
     @PutMapping("/diet/modify/{articleId}")
@@ -357,7 +442,7 @@ public class HealthInFormController {
 
                     // 5. 데이터베이스 업데이트
                     Diet_Inform_Article_Img ImagesEntity = new Diet_Inform_Article_Img();
-                    ImagesEntity.setDiet_inform_article(dietInformArticle);
+                    ImagesEntity.setDietInformArticle(dietInformArticle);
                     ImagesEntity.setImgUrl(String.format("/static/diet/%d/%s", id, originalFilename));
                     dietInformArticleImgRepository.save(ImagesEntity);
 

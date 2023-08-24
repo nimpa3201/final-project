@@ -30,13 +30,13 @@ public class Diet_Inform_Article {
 
     private LocalDateTime created_at;
 
-    @OneToMany(mappedBy = "diet_inform_article")
+    @OneToMany(mappedBy = "dietInformArticle")
     private List<Diet_Inform_Comment> dietInformComments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "diet_inform_article")
+    @OneToMany(mappedBy = "dietInformArticle")
     private List<Diet_Inform_Article_Img> dietArticleImgs = new ArrayList<>();
 
-    @OneToMany(mappedBy = "diet_inform_article")
+    @OneToMany(mappedBy = "dietInformArticle")
     private List<Diet_Inform_Likes> dietArticleLikes = new ArrayList<>();
 
 }

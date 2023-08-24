@@ -2,9 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>다이어트 게시글 수정</title>
 </head>
 <body>
 
+<div>
+    <h1 th:text="${article.title}"></h1>
+    <p>작성자: <span th:text="${article.user.username}"></span></p>
+    <p>작성일: <span th:text="${article.created_at}"></span></p>
+    <p>태그: <span th:text="${article.tag}"></span></p>
+    <p>내용: <span th:text="${article.content}"></span></p>
+
+    <div th:each="img : ${articleImgs}">
+        <p>Image URL: <span th:text="${img.imgUrl}"></span></p>
+        <img th:src="@{${img.imgUrl}}" alt="Image">
+    </div>
+
+    <div id="editForm">
+        <!-- 수정 가능한 입력 폼 -->
+        <label for="title">제목</label>
+        <input type="text" id="title" name="title" th:value="${article.title}">
+        <label for="tag">태그</label>
+        <input type="text" id="tag" name="tag" th:value="${article.tag}">
+        <label for="content">내용</label>
+        <textarea id="content" name="content" rows="4" cols="50" th:text="${article.content}"></textarea>
+        <button type="button" onclick="saveArticle()">수정</button>
+        <button type="button" onclick="window.history.back()">취소</button>
+    </div>
+
+
+    <script>
+        // 수정 폼 보이기
+        document.getElementById("editForm").style.display = "block";
+
+        function saveArticle() {
+            const updatedTitle = document.getElementById("title").value;
+            const updatedTag = document.getElementById("tag").value;
+            const updatedContent = document.getElementById("content").value;
+
+            fetch(`/healthInform/diet/modify/` + [[${article.id}]], {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: updatedTitle,
+                    tag: updatedTag,
+                    content: updatedContent
+                })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("게시글이 수정되었습니다.");
+                        window.history.back(); // 수정 완료 후 뒤로 가기
+                    } else {
+                        alert("게시글 수정에 실패하였습니다.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("오류가 발생하였습니다. 다시 시도해주세요.");
+                });
+        }
+    </script>
+</div>
 </body>
 </html>
