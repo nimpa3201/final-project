@@ -6,10 +6,13 @@ import lombok.Data;
 @Data
 public class Diet_Inform_Post_Dto {
 
+
     @NotBlank
-    private String tag; // 태그
+    private String tag;
+
     @NotBlank
     private String title;
     @NotBlank
     private String content;
 }
+

@@ -20,6 +20,7 @@ public class Diet_Inform_Article {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
     @NotBlank
     private String tag; // 태그
 

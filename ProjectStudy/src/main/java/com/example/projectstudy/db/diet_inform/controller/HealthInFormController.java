@@ -4,10 +4,7 @@ import com.example.projectstudy.db.UserEntity;
 import com.example.projectstudy.db.UserRepository;
 import com.example.projectstudy.db.diet_inform.dto.Diet_Inform_Comment_Dto;
 import com.example.projectstudy.db.diet_inform.dto.Diet_Inform_Post_Dto;
-import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Article;
-import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Article_Img;
-import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Comment;
-import com.example.projectstudy.db.diet_inform.entities.Diet_Inform_Likes;
+import com.example.projectstudy.db.diet_inform.entities.*;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Img_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Comment_Repository;
@@ -17,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -66,13 +64,24 @@ public class HealthInFormController {
         // 페이지네이션 정보 생성
         Pageable pageable = PageRequest.of(page, 10); // 한 페이지에 10개의 게시글 표시
 
-        // 게시물 목록 페이지별로 가져오기
-        Page<Diet_Inform_Article> articlePage = dietInformArticleRepository.findAll(pageable);
+        // "공지사항" 태그 게시물 가져오기
+        Page<Diet_Inform_Article> noticeArticles = dietInformArticleRepository.findByTag("공지사항", pageable);
+
+        // 나머지 게시물 가져오기 (공지사항 제외)
+        Page<Diet_Inform_Article> otherArticles = dietInformArticleRepository.findByTagNot("공지사항", pageable);
+
+        List<Diet_Inform_Article> allArticles = new ArrayList<>();
+        allArticles.addAll(noticeArticles.getContent());
+        allArticles.addAll(otherArticles.getContent());
+
+        // 전체 게시물 리스트를 페이지네이션으로 다시 생성
+        Page<Diet_Inform_Article> articlePage = new PageImpl<>(allArticles, pageable, noticeArticles.getTotalElements() + otherArticles.getTotalElements());
 
         model.addAttribute("articles", articlePage);
 
         return "DietInform";
     }
+
 
     // 다이어트 게시판 작성자로 찾기
     @GetMapping("/diet/search/byAuthor")
@@ -279,10 +288,13 @@ public class HealthInFormController {
             ResponseEntity.notFound();
         }
 
-        if(!comment.get().getUser().getUsername().equals(username)){
-            ResponseEntity.badRequest();
-        }
 
+        if((!comment.get().getUser().getUsername().equals(username))){
+            // 관리자도 아니면 badRequest
+            if(!"admin".equals(username)){
+                ResponseEntity.badRequest();
+            }
+        }
         dietInformCommentRepository.delete(comment.get());
 
         return ResponseEntity.ok().build();
@@ -310,6 +322,11 @@ public class HealthInFormController {
         List<Diet_Inform_Comment> commentList = dietInformCommentRepository.findAll();
         for (Diet_Inform_Comment comment: commentList) {
             if (comment.getDietInformArticle().getId() == articleId){
+               if(!comment.getUser().getUsername().equals(username)){
+                   if(!"admin".equals(username)){
+                       return ResponseEntity.badRequest().body("bad request");
+                   }
+               }
                dietInformCommentRepository.delete(comment);
             }
         }
@@ -319,6 +336,12 @@ public class HealthInFormController {
 
         for (Diet_Inform_Likes likes: dietInformLikes ) {
             if(likes.getDietInformArticle().getId() == articleId){
+                if(!likes.getUser().getUsername().equals(username)){
+                    if("admin".equals(username)){
+                        return ResponseEntity.badRequest().body("bad request");
+                    }
+                }
+
                 dietInformLikesRepository.delete(likes);
             }
         }
@@ -328,9 +351,18 @@ public class HealthInFormController {
         List<Diet_Inform_Article_Img> articleImg = new ArrayList<>();
         for (Diet_Inform_Article_Img Img: ImgList) {
             if(Img.getDietInformArticle().getId() == articleId){
+
+                if(!Img.getDietInformArticle().getUser().getUsername().equals(username)){
+                    if(!"admin".equals(username)){
+                        return ResponseEntity.badRequest().body("bad request");
+                    }
+                }
+
                 articleImg.add(Img);
             }
         }
+
+
         for (int i = 0; i < articleImg.size() ; i++) {
             String[] split = articleImg.get(i).getImgUrl().split("/");
             String name = split[split.length-1];
@@ -347,7 +379,7 @@ public class HealthInFormController {
         }
 
         // Article 삭제
-        if (diet_inform_article.getUser().getUsername().equals(username)){
+        if (diet_inform_article.getUser().getUsername().equals(username)||"admin".equals(username)){
             dietInformArticleRepository.delete(diet_inform_article);
             return ResponseEntity.ok("Article deleted successfully");
         }
@@ -403,7 +435,7 @@ public class HealthInFormController {
         diet_inform_article.setContent(updatedArticleDto.getContent());
 
         // 수정
-        if (diet_inform_article.getUser().getUsername().equals(username)){
+        if (diet_inform_article.getUser().getUsername().equals(username)||"admin".equals(username)){
             dietInformArticleRepository.save(diet_inform_article);
             return ResponseEntity.ok("Article modify successfully");
         }
@@ -426,7 +458,9 @@ public class HealthInFormController {
         }
         Diet_Inform_Article_Img dietInformArticleImg = optional.get();
         if (!dietInformArticleImg.getDietInformArticle().getUser().getUsername().equals(username)){
-            return ResponseEntity.badRequest().body("badRequest");
+            if(!"admin".equals(username)){
+                return ResponseEntity.badRequest().body("badRequest");
+            }
         }
 
         dietInformArticleImgRepository.delete(dietInformArticleImg);
@@ -545,8 +579,5 @@ public class HealthInFormController {
             }
         }
     }
-
-
-
 
 }

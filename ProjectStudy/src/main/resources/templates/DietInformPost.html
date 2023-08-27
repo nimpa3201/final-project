@@ -12,7 +12,12 @@
     <input type="text" id="title" name="title" required><br>
 
     <label for="tags">태그:</label>
-    <input type="text" id="tags" name="tags" required><br>
+    <select id="tags" name="tags" required>
+        <option value="기타">기타</option>
+        <option value="벌크업">벌크업</option>
+        <option value="다이어트">다이어트</option>
+        <option value="공지사항" th:if="${#authentication.principal.username == 'admin'}">공지사항</option>
+    </select>
 
     <label for="content">내용:</label><br>
     <textarea id="content" name="content" rows="5" cols="40" required></textarea><br>
