@@ -12,6 +12,8 @@
     <br><br>
     <input type="text" id="room-name" placeholder="Create Room">
     <button id="create" onclick="createRoom()">생성</button>
+
+    <input type='hidden' th:value="${#authentication.principal.username}" id='currentUsername'>
   </div>
   <div id="room-list">
   </div>
@@ -21,18 +23,17 @@
     const nickname = document.getElementById("nickname").value ?? 'anonymous';
     const chatRooms = await (await fetch("/chat/rooms")).json();
     const roomDiv = document.getElementById("room-list");
+    const currentUsername = document.getElementById("currentUsername").value;
     roomDiv.innerText = "";
     chatRooms.forEach((chatRoom) => {
       console.log(chatRoom);
       const newRoom = document.createElement("div");
 
       newRoom.innerHTML = `
-        <a href="/chat/${chatRoom.id}/${nickname}">${chatRoom.roomName}</a>
-        <span style="display: none;">
-        [[${#authentication.principal.username == 'admin'}]]
-        </span>
-          <button onclick="deleteRoom(${chatRoom.id})">Delete</button>
-      `;
+        <a href="/chat/${chatRoom.id}/${nickname}">${chatRoom.roomName}</a> `;
+        if (currentUsername === 'admin'){
+          newRoom.innerHTML += `<button onclick=\"deleteRoom(${chatRoom.id})\">Delete</button>`;
+        }
       roomDiv.appendChild(newRoom);
     });
   }
