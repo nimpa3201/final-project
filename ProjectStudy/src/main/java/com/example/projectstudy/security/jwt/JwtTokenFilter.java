@@ -24,12 +24,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     public JwtTokenFilter(JwtTokenUtils jwtTokenUtils) {
         this.jwtTokenUtils = jwtTokenUtils;
     }
+
+    // CRSF 공격이나 XSS 공격
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+
         // 쿠키에서 토큰 가져오기
         Cookie[] cookies = request.getCookies();
         String Token = null;

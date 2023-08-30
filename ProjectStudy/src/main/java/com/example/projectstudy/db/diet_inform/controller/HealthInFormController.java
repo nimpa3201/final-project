@@ -178,8 +178,6 @@ public class HealthInFormController {
         return "DietInformArticle";
     }
 
-    // 검색 방식에 따라서 보여지는 값들 정리하기 GetMapping
-
 
     // 좋아요 로직 (좋아요는 한번 더 누르면 취소)
     @Transactional
@@ -230,8 +228,6 @@ public class HealthInFormController {
         }
 
     }
-
-
 
     // 댓글 로직
     @PostMapping("/diet/comment/{articleId}")
@@ -567,7 +563,7 @@ public class HealthInFormController {
                     // 5. 데이터베이스 업데이트
                     Diet_Inform_Article_Img ImagesEntity = new Diet_Inform_Article_Img();
                     ImagesEntity.setDietInformArticle(dietInformArticle);
-                    ImagesEntity.setImgUrl(String.format("/static/diet/%d/%s", id, originalFilename));
+                    ImagesEntity.setImgUrl(String.format("/static.js/diet/%d/%s", id, originalFilename));
                     dietInformArticleImgRepository.save(ImagesEntity);
 
                 }

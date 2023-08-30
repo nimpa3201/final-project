@@ -23,7 +23,7 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authHttp -> authHttp
                         .requestMatchers(
-                                "/main/sign-up", "/main/login", "/main"
+                                "/main/sign-up", "/main/login", "/main", "/js/**", "/chatting/**"
                                 // 회원가입         // 로그인           // 메인 페이지
                         ).permitAll()
                         .anyRequest()

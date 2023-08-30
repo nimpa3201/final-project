@@ -37,12 +37,17 @@ dependencies {
 	implementation 'org.xerial:sqlite-jdbc:3.41.2.2'
 	runtimeOnly 'org.hibernate.orm:hibernate-community-dialects:6.2.4.Final'
 
-
 	// spring security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+	// Stomp 적용
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	//gson
+	implementation 'com.google.code.gson:gson:2.9.0'
 }
 
 tasks.named('test') {
