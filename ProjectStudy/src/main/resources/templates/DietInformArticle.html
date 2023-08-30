@@ -11,6 +11,8 @@
 <p>내용: <span th:text="${article.content}"></span></p>
 
 <p>좋아요 수: <span th:text="${like}"></span></p>
+<input type='hidden' th:value="${#authentication.principal.username}" id='currentUsername'>
+<input type="hidden" th:value="${article.getChatRoom().getId()}" id="roomId">
 
 <!-- 게시물에 연결된 이미지들 표시 -->
 <div th:each="img : ${articleImgs}">
@@ -52,6 +54,7 @@
     좋아요
 </button>
 
+<button onclick="enterChatRoom()">채팅방 입장</button>
 
 
 <!-- 게시글 수정 버튼 -->
@@ -65,6 +68,27 @@
 
 
 <script>
+    function enterChatRoom() {
+        const currentUsername = document.getElementById("currentUsername").value;
+        const chatId = document.getElementById("roomId").value;
+
+        fetch(`/chat/${chatId}/${currentUsername}`)
+            .then(response => {
+                if (response.ok) {
+                    // 채팅방으로 이동
+                    window.location.href = `/chat/${chatId}/${currentUsername}`;
+                } else {
+                    // Handle error
+                    console.error("Failed to enter chat room.");
+                    alert("채팅방 입장에 실패하였습니다.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("오류가 발생하였습니다. 다시 시도해주세요.");
+            });
+    }
+
     function toggleLike() {
         const articleId = [[${article.id}]];
         const likeButton = document.getElementById('likeButton-' + articleId);

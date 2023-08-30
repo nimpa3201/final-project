@@ -71,7 +71,6 @@ public class ChatService {
         if (!username.equals("admin")){
             return ResponseEntity.badRequest().body("권한이 없습니다.");
         }
-
         ChatRoomEntity chatRoom = optionalChatRoom.get();
         chatRoomRepository.delete(chatRoom);
         return ResponseEntity.ok("삭제 완료");

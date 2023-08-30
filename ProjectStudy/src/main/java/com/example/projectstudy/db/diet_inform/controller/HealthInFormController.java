@@ -1,5 +1,9 @@
 package com.example.projectstudy.db.diet_inform.controller;
 
+import com.example.projectstudy.chat.jpa.ChatMessageEntity;
+import com.example.projectstudy.chat.jpa.ChatMessageRepository;
+import com.example.projectstudy.chat.jpa.ChatRoomEntity;
+import com.example.projectstudy.chat.jpa.ChatRoomRepository;
 import com.example.projectstudy.db.UserEntity;
 import com.example.projectstudy.db.UserRepository;
 import com.example.projectstudy.db.diet_inform.dto.Diet_Inform_Comment_Dto;
@@ -9,6 +13,7 @@ import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Img_Rep
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Article_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Comment_Repository;
 import com.example.projectstudy.db.diet_inform.repos.Diet_Inform_Likes_Repository;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +54,8 @@ public class HealthInFormController {
     private final Diet_Inform_Comment_Repository dietInformCommentRepository;
     private final UserRepository userRepository;
     private final Diet_Inform_Likes_Repository dietInformLikesRepository;
-
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
     // 헬스 정보 공유 게시판 메인
 
     @GetMapping("/main")
@@ -341,6 +347,19 @@ public class HealthInFormController {
                 dietInformLikesRepository.delete(likes);
             }
         }
+
+        // 채팅방 삭제
+        Long chatRoomId = diet_inform_article.getChatRoom().getId();
+        Optional<ChatRoomEntity> chatRoom = chatRoomRepository.findById(chatRoomId);
+        chatRoomRepository.delete(chatRoom.get());
+
+        // 메세지 삭제
+        List<ChatMessageEntity> chatMessages = chatMessageRepository.findByRoomId(chatRoomId);
+        for (ChatMessageEntity message: chatMessages) {
+            chatMessageRepository.delete(message);
+        }
+
+
         // 이미지 삭제
         List<Diet_Inform_Article_Img> ImgList = dietInformArticleImgRepository.findAll();
 
@@ -484,6 +503,7 @@ public class HealthInFormController {
         return "DietInformPost";
     }
 
+    @Transactional
     @PostMapping("/diet/post")
     public ResponseEntity<String> dietInformPostStart(@RequestBody @Valid Diet_Inform_Post_Dto dto, LocalDateTime localDateTime){
 
@@ -505,6 +525,15 @@ public class HealthInFormController {
         diet_inform_article.setUser(user.get());
         diet_inform_article.setCreated_at(localDateTime.now());
 
+        // 채팅방 생성
+        ChatRoomEntity chatRoom = new ChatRoomEntity();
+        // 제목으로 채팅방 생성
+        chatRoom.setRoomName(dto.getTitle());
+        chatRoomRepository.save(chatRoom);
+
+        chatRoom.setDietInformArticle(diet_inform_article);
+        diet_inform_article.setChatRoom(chatRoom);
+
         try {
             dietInformArticleRepository.save(diet_inform_article);
             log.info("작성완료");
@@ -518,6 +547,8 @@ public class HealthInFormController {
             log.error("글 작성 실패", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("글 작성에 실패하였습니다.");
         }
+
+
     }
 
     // 이미지 업로드
