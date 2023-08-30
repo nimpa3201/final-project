@@ -11,7 +11,13 @@
 <button onclick="logout()">로그아웃</button>
 <button onclick="goToHealthMain()">헬스정보게시판</button>
 <button onclick="goToFreeBoard()">자유 게시판</button>
+<button onclick="goToChatRoom()">채팅방</button>
 <script>
+
+    function goToChatRoom(){
+
+        window.location.href = "/chat";
+    }
     function logout() {
         document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         // 로그아웃 후 메인 페이지로 리다이렉트합니다.

@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>WebSocket Chatting</title>
-
 </head>
 <body onload="">
 <div>
@@ -18,17 +17,23 @@
   </div>
 </div>
 <script type="text/javascript">
-
   async function loadRooms(){
     const nickname = document.getElementById("nickname").value ?? 'anonymous';
     const chatRooms = await (await fetch("/chat/rooms")).json();
     const roomDiv = document.getElementById("room-list");
-    roomDiv.innerText = ""
+    roomDiv.innerText = "";
     chatRooms.forEach((chatRoom) => {
-      console.log(chatRoom)
-      const newRoom = document.createElement("div")
-      newRoom.innerHTML = `<a href="/chat/${chatRoom.id}/${nickname}">${chatRoom.roomName}</a>`;
-      roomDiv.appendChild(newRoom)
+      console.log(chatRoom);
+      const newRoom = document.createElement("div");
+
+      newRoom.innerHTML = `
+        <a href="/chat/${chatRoom.id}/${nickname}">${chatRoom.roomName}</a>
+        <span style="display: none;">
+        [[${#authentication.principal.username == 'admin'}]]
+        </span>
+          <button onclick="deleteRoom(${chatRoom.id})">Delete</button>
+      `;
+      roomDiv.appendChild(newRoom);
     });
   }
 
@@ -48,9 +53,22 @@
     window.location.href = `/chat/${roomId}/${nickname}`;
   }
 
+  async function deleteRoom(roomId) {
+    const response = await fetch(`/chat/rooms/${roomId}/name`, {
+      method: "DELETE",
+      headers: {
+        "content-type": "application/json"
+      }
+    });
 
-
+    if (response.ok) {
+      // Room deleted successfully, update the room list
+      loadRooms();
+    } else {
+      // Handle error
+      console.error("Failed to delete room.");
+    }
+  }
 </script>
 </body>
 </html>
-

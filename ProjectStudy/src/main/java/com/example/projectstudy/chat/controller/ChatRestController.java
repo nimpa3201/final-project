@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -29,5 +30,12 @@ public class ChatRestController {
     @GetMapping("rooms/{id}/name")
     public ResponseEntity<ChatRoom> getRoomName(@PathVariable("id") Long roomId) {
         return ResponseEntity.ok(chatService.findRoomById(roomId));
+    }
+
+    // 관리자만 삭제 가능
+    @DeleteMapping("rooms/{id}/name")
+    public ResponseEntity<String> deleteRoom(@PathVariable("id") Long roomId){
+
+        return chatService.deleteRoom(roomId);
     }
 }
