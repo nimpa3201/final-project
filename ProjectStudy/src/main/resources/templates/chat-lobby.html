@@ -7,7 +7,6 @@
 <body onload="">
 <div>
   <div>
-    <label for="nickname">이름: </label><input type="text" id="nickname" placeholder="Choose a nickname"/>
     <button id="connect" onclick="loadRooms()">방 찾기</button>
     <br><br>
     <input type="text" id="room-name" placeholder="Create Room">
@@ -20,26 +19,25 @@
 </div>
 <script type="text/javascript">
   async function loadRooms(){
-    const nickname = document.getElementById("nickname").value ?? 'anonymous';
+    const currentUsername = document.getElementById("currentUsername").value;
     const chatRooms = await (await fetch("/chat/rooms")).json();
     const roomDiv = document.getElementById("room-list");
-    const currentUsername = document.getElementById("currentUsername").value;
     roomDiv.innerText = "";
     chatRooms.forEach((chatRoom) => {
       console.log(chatRoom);
       const newRoom = document.createElement("div");
 
       newRoom.innerHTML = `
-        <a href="/chat/${chatRoom.id}/${nickname}">${chatRoom.roomName}</a> `;
-        if (currentUsername === 'admin'){
-          newRoom.innerHTML += `<button onclick=\"deleteRoom(${chatRoom.id})\">Delete</button>`;
-        }
+        <a href="/chat/${chatRoom.id}/${currentUsername}">${chatRoom.roomName}</a> `;
+      if (currentUsername === 'admin'){
+        newRoom.innerHTML += `<button onclick="deleteRoom(${chatRoom.id})">Delete</button>`;
+      }
       roomDiv.appendChild(newRoom);
     });
   }
 
   async function createRoom() {
-    const nickname = document.getElementById("nickname").value;
+    const currentUsername = document.getElementById("currentUsername").value;
     const roomName = document.getElementById("room-name").value;
     const response = await (await fetch(`/chat/rooms`, {
       method: "POST",
@@ -51,7 +49,7 @@
       })
     })).json();
     const roomId = response.id;
-    window.location.href = `/chat/${roomId}/${nickname}`;
+    window.location.href = `/chat/${roomId}/${currentUsername}`;
   }
 
   async function deleteRoom(roomId) {
