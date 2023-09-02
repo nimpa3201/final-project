@@ -45,25 +45,25 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
         }
         if (Token != null){
-           String token = Token;
-           if (jwtTokenUtils.validate(token)){
-               SecurityContext context = SecurityContextHolder.createEmptyContext();
-               String username = jwtTokenUtils
-                       .parseClaims(token)
-                       .getSubject();
-               // 사용자 인증 정보 생성
-               AbstractAuthenticationToken authenticationToken
-                       = new UsernamePasswordAuthenticationToken(
-                       CustomUserDetails.builder()
-                               .username(username)
-                               .build(),
-                       token, new ArrayList<>()
-               );
-               context.setAuthentication(authenticationToken);
-               SecurityContextHolder.setContext(context);
-               log.info("set security context with jwt");
-           }
-           else { log.warn("jwt validation failed");}
+            String token = Token;
+            if (jwtTokenUtils.validate(token)){
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                String username = jwtTokenUtils
+                        .parseClaims(token)
+                        .getSubject();
+                // 사용자 인증 정보 생성
+                AbstractAuthenticationToken authenticationToken
+                        = new UsernamePasswordAuthenticationToken(
+                        CustomUserDetails.builder()
+                                .username(username)
+                                .build(),
+                        token, new ArrayList<>()
+                );
+                context.setAuthentication(authenticationToken);
+                SecurityContextHolder.setContext(context);
+                log.info("set security context with jwt");
+            }
+            else { log.warn("jwt validation failed");}
         }
         filterChain.doFilter(request, response);
     }

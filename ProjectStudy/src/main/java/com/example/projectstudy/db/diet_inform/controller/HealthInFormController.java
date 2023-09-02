@@ -594,7 +594,7 @@ public class HealthInFormController {
                     // 5. 데이터베이스 업데이트
                     Diet_Inform_Article_Img ImagesEntity = new Diet_Inform_Article_Img();
                     ImagesEntity.setDietInformArticle(dietInformArticle);
-                    ImagesEntity.setImgUrl(String.format("/static.js/diet/%d/%s", id, originalFilename));
+                    ImagesEntity.setImgUrl(String.format("/static/diet/%d/%s", id, originalFilename));
                     dietInformArticleImgRepository.save(ImagesEntity);
 
                 }
